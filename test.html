@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h3>Test connexion Worker</h3>
+<div id="r">Test en cours...</div>
+<script>
+fetch('https://optracker-api.karlfox933.workers.dev/?action=getOpportunites')
+  .then(r => r.text())
+  .then(t => document.getElementById('r').innerHTML = '<strong>SUCCÈS</strong> : ' + t.slice(0,200))
+  .catch(e => document.getElementById('r').innerHTML = '<strong>ERREUR</strong> : ' + e.name + ' — ' + e.message);
+</script>
+</body>
+</html>
