@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>OpTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F7F6F3; --white: #FFFFFF; --border: #E8E6E1; --border2: #D4D1CB;
+  --text: #1A1916; --muted: #6B6860; --hint: #A8A49D;
+  --accent: #2D5BE3; --accent-l: #EEF2FD;
+  --green: #1A7A4A; --green-l: #E8F5EE;
+  --amber: #B45309; --amber-l: #FEF3C7;
+  --red: #C0392B; --red-l: #FDECEA;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans: 'DM Sans', sans-serif;
+  --r: 12px; --rs: 8px;
+  --sh: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; font-size: 15px; }
+#app { display: flex; flex-direction: column; height: 100vh; max-width: 430px; margin: 0 auto; background: var(--white); }
+
+/* HEADER */
+.hdr { padding: 52px 20px 12px; background: var(--white); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.hdr-row { display: flex; justify-content: space-between; align-items: center; }
+.logo { font-family: var(--serif); font-size: 24px; letter-spacing: -.3px; }
+.logo em { font-style: italic; color: var(--accent); }
+.sync { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: var(--muted); transition: all .15s; }
+.sync:active { background: var(--border); }
+.sync.spin { animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* KPIS */
+.kpis { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.kpi { flex: 1; padding: 10px 0; text-align: center; border-right: 1px solid var(--border); }
+.kpi:last-child { border-right: none; }
+.kn { font-family: var(--serif); font-size: 20px; line-height: 1; }
+.kl { font-size: 9px; color: var(--hint); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+
+/* TABS */
+.tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; padding: 0 20px; background: var(--white); }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { padding: 11px 16px; font-size: 13px; font-weight: 500; color: var(--hint); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+.tab.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* CONTENT */
+.content { flex: 1; overflow-y: auto; background: var(--bg); -webkit-overflow-scrolling: touch; }
+.content::-webkit-scrollbar { width: 3px; }
+.content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* SEARCH */
+.search-sec { padding: 12px 16px 0; background: var(--white); border-bottom: 1px solid var(--border); }
+.search-wrap { position: relative; margin-bottom: 10px; }
+.si { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--hint); font-size: 14px; }
+.search { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--rs); padding: 9px 12px 9px 34px; font-family: var(--sans); font-size: 14px; color: var(--text); outline: none; transition: border .15s; }
+.search:focus { border-color: var(--accent); background: var(--white); }
+.search::placeholder { color: var(--hint); }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { white-space: nowrap; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); color: var(--muted); background: var(--white); font-family: var(--sans); transition: all .15s; }
+.chip.on { background: var(--accent); color: var(--white); border-color: var(--accent); }
+
+/* CARDS */
+.list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; cursor: pointer; box-shadow: var(--sh); position: relative; overflow: hidden; transition: transform .1s; }
+.card::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
+.card.h::after { background: var(--green); }
+.card.m::after { background: var(--amber); }
+.card.l::after { background: var(--border2); }
+.card:active { transform: scale(.99); }
+.ch { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+.ct { font-size: 13px; font-weight: 600; line-height: 1.4; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sp { flex-shrink: 0; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: var(--serif); }
+.sp.h { background: var(--green-l); color: var(--green); }
+.sp.m { background: var(--amber-l); color: var(--amber); }
+.sp.l { background: var(--bg); color: var(--hint); }
+.co { font-size: 11px; color: var(--accent); font-weight: 500; margin-bottom: 8px; }
+.ctags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--bg); }
+.tag.t { background: var(--accent-l); color: var(--accent); border-color: transparent; }
+.tag.d { background: var(--amber-l); color: var(--amber); border-color: transparent; }
+.cm { font-size: 10px; color: var(--hint); font-style: italic; line-height: 1.5; }
+.cbtns { display: flex; gap: 6px; margin-top: 10px; }
+.cbtn { flex: 1; padding: 7px 8px; border-radius: var(--rs); font-size: 11px; font-weight: 500; text-align: center; cursor: pointer; border: 1px solid var(--border); color: var(--muted); background: var(--bg); font-family: var(--sans); transition: opacity .15s; }
+.cbtn.p { background: var(--accent); color: var(--white); border-color: var(--accent); }
+.cbtn.s { background: var(--green-l); color: var(--green); border-color: transparent; }
+.cbtn:active { opacity: .7; }
+
+/* EMPTY + LOADER */
+.empty { text-align: center; padding: 60px 30px; }
+.ei { font-size: 36px; margin-bottom: 14px; opacity: .4; }
+.et { font-family: var(--serif); font-size: 18px; color: var(--muted); margin-bottom: 6px; }
+.es { font-size: 13px; color: var(--hint); line-height: 1.6; }
+.loader { display: flex; flex-direction: column; align-items: center; padding: 60px 20px; gap: 14px; }
+.ring { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--accent); animation: spin .7s linear infinite; }
+.lt { font-size: 13px; color: var(--hint); }
+
+/* BOTTOM NAV */
+.bnav { display: flex; border-top: 1px solid var(--border); background: var(--white); flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.ni { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 0; cursor: pointer; color: var(--hint); font-size: 9px; text-transform: uppercase; letter-spacing: .05em; transition: color .15s; }
+.ni.on { color: var(--accent); }
+.nicon { font-size: 18px; line-height: 1; }
+
+/* DRAWER */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.25); backdrop-filter: blur(2px); z-index: 200; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.overlay.on { opacity: 1; pointer-events: all; }
+.drawer { position: absolute; bottom: 0; left: 0; right: 0; background: var(--white); border-radius: 20px 20px 0 0; max-height: 88vh; overflow-y: auto; transform: translateY(100%); transition: transform .3s cubic-bezier(.32,.72,0,1); }
+.overlay.on .drawer { transform: translateY(0); }
+.dhandle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 14px auto 0; }
+.dbody { padding: 20px 20px 40px; }
+.dtype { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.dtitle { font-family: var(--serif); font-size: 19px; line-height: 1.35; margin-bottom: 4px; }
+.dorg { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.sblock { display: flex; align-items: center; gap: 16px; background: var(--bg); border-radius: var(--r); padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); }
+.bscore { font-family: var(--serif); font-size: 48px; line-height: 1; }
+.bscore.h { color: var(--green); } .bscore.m { color: var(--amber); } .bscore.l { color: var(--hint); }
+.sit { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.sis { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.dsec { margin-bottom: 14px; }
+.dlbl { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--hint); margin-bottom: 5px; }
+.dval { font-size: 13px; line-height: 1.6; }
+.dmots { font-size: 12px; color: var(--accent); line-height: 1.7; }
+.dbtns { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+.dbtn { width: 100%; padding: 14px; border-radius: var(--r); font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; border: none; font-family: var(--sans); transition: opacity .15s; }
+.dbtn.p { background: var(--accent); color: var(--white); }
+.dbtn.s { background: var(--green-l); color: var(--green); }
+.dbtn.g { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.dbtn:active { opacity: .8; }
+
+/* DOCS */
+.dcard { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; box-shadow: var(--sh); }
+.dctitle { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.dcopp { font-size: 11px; color: var(--accent); margin-bottom: 6px; }
+.dcdate { font-size: 11px; color: var(--hint); margin-bottom: 8px; }
+.dcprev { font-size: 12px; color: var(--muted); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; }
+.cpbtn { width: 100%; padding: 9px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--rs); font-size: 12px; font-weight: 500; color: var(--accent); cursor: pointer; text-align: center; font-family: var(--sans); transition: background .15s; }
+.cpbtn:active { background: var(--accent-l); }
+
+/* SETTINGS */
+.slist { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.stitle { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--hint); padding: 4px 4px 6px; font-weight: 600; }
+.scard { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; box-shadow: var(--sh); }
+.srow { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .15s; }
+.srow:last-child { border-bottom: none; }
+.srow:active { background: var(--bg); }
+.sicon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.sicon.b { background: var(--accent-l); } .sicon.g { background: var(--green-l); } .sicon.a { background: var(--amber-l); } .sicon.x { background: var(--bg); }
+.stxt { flex: 1; }
+.slbl { font-size: 13px; font-weight: 500; }
+.ssub { font-size: 11px; color: var(--hint); margin-top: 1px; }
+.sarr { color: var(--hint); font-size: 14px; }
+.sbadge { font-size: 11px; font-weight: 600; color: var(--green); background: var(--green-l); padding: 2px 8px; border-radius: 10px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--text); color: var(--white); padding: 10px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 400; opacity: 0; transition: all .25s; white-space: nowrap; pointer-events: none; }
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok { background: var(--green); }
+.toast.err { background: var(--red); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-row">
+      <div class="logo">Op<em>Tracker</em></div>
+      <div class="sync" id="syncBtn" onclick="syncAll()">↻</div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="kn" id="k1" style="color:var(--accent)">–</div><div class="kl">Total</div></div>
+    <div class="kpi"><div class="kn" id="k2" style="color:var(--green)">–</div><div class="kl">Score 50+</div></div>
+    <div class="kpi"><div class="kn" id="k3" style="color:var(--amber)">–</div><div class="kl">Nouvelles</div></div>
+    <div class="kpi"><div class="kn" id="k4">–</div><div class="kl">Documents</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" onclick="goTab('opps',this)">Opportunités</div>
+    <div class="tab" onclick="goTab('docs',this)">Documents</div>
+    <div class="tab" onclick="goTab('analyse',this)">Analyse</div>
+    <div class="tab" onclick="goTab('cfg',this)">Config</div>
+  </div>
+
+  <div class="content">
+    <!-- OPPS -->
+    <div id="t-opps">
+      <div class="search-sec">
+        <div class="search-wrap">
+          <span class="si">⌕</span>
+          <input class="search" id="q" type="text" placeholder="Rechercher..." oninput="renderOpps()">
+        </div>
+        <div class="chips">
+          <div class="chip on" onclick="setF('tous',this)">Tous</div>
+          <div class="chip" onclick="setF('h',this)">Score 50+</div>
+          <div class="chip" onclick="setF('fellow',this)">Fellowship</div>
+          <div class="chip" onclick="setF('scholar',this)">Bourse</div>
+          <div class="chip" onclick="setF('conf',this)">Conférence</div>
+          <div class="chip" onclick="setF('summer',this)">Summer School</div>
+          <div class="chip" onclick="setF('encours',this)">En cours</div>
+        </div>
+      </div>
+      <div class="list" id="oppList">
+        <div class="loader"><div class="ring"></div><div class="lt">Chargement...</div></div>
+      </div>
+    </div>
+
+    <!-- DOCS -->
+    <div id="t-docs" style="display:none">
+      <div class="list" id="docList">
+        <div class="loader"><div class="ring"></div><div class="lt">Chargement...</div></div>
+      </div>
+    </div>
+
+    <!-- ANALYSE -->
+    <div id="t-analyse" style="display:none">
+      <div class="list" id="analyseList">
+        <div class="empty"><div class="ei">◎</div><div class="et">Aucune analyse</div><div class="es">Ouvre une opportunité et clique "Analyser" pour voir le rapport ici.</div></div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div id="t-cfg" style="display:none">
+      <div class="slist">
+        <div class="stitle">Système</div>
+        <div class="scard">
+          <div class="srow" onclick="doScrape()">
+            <div class="sicon b">↻</div>
+            <div class="stxt"><div class="slbl">Lancer le scraping</div><div class="ssub">Collecter nouvelles opportunités</div></div>
+            <span class="sarr">›</span>
+          </div>
+          <div class="srow">
+            <div class="sicon g">◷</div>
+            <div class="stxt"><div class="slbl">Scraping automatique</div><div class="ssub">Toutes les 6 heures</div></div>
+            <span class="sbadge">Actif</span>
+          </div>
+          <div class="srow" onclick="window.open('https://docs.google.com/spreadsheets/d/1wvVcgfH00yUpcZQD4c-pxHSL44uDQLBA3eTOUOfkqBE','_blank')">
+            <div class="sicon a">⊞</div>
+            <div class="stxt"><div class="slbl">Ouvrir Google Sheets</div><div class="ssub">Modifier sources, mots-clés, config</div></div>
+            <span class="sarr">›</span>
+          </div>
+        </div>
+        <div class="stitle" style="margin-top:8px">Profil</div>
+        <div class="scard">
+          <div class="srow">
+            <div class="sicon b">◉</div>
+            <div class="stxt"><div class="slbl">Karl-Loïc Icoutchika</div><div class="ssub">PhD · UAC Bénin · Livestock & Circular Economy</div></div>
+          </div>
+        </div>
+        <div class="stitle" style="margin-top:8px">À propos</div>
+        <div class="scard">
+          <div class="srow">
+            <div class="sicon x">◇</div>
+            <div class="stxt"><div class="slbl">OpTracker v1.0</div><div class="ssub">Construit avec Claude · Anthropic</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bnav">
+    <div class="ni on" id="n-opps" onclick="goTab('opps',null,1)"><span class="nicon">◈</span><span>Offres</span></div>
+    <div class="ni" id="n-docs" onclick="goTab('docs',null,1)"><span class="nicon">◇</span><span>Docs</span></div>
+    <div class="ni" id="n-analyse" onclick="goTab('analyse',null,1)"><span class="nicon">◎</span><span>Analyse</span></div>
+    <div class="ni" id="n-cfg" onclick="goTab('cfg',null,1)"><span class="nicon">⊙</span><span>Config</span></div>
+  </nav>
+</div>
+
+<div class="overlay" id="ov" onclick="closeD(event)">
+  <div class="drawer"><div class="dhandle"></div><div class="dbody" id="dbody"></div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://optracker-api.karlfox933.workers.dev/';
+let opps = [], docs = [], flt = 'tous', tab = 'opps', toastT;
+
+window.addEventListener('load', () => { loadOpps(); loadDocs(); });
+
+async function loadOpps() {
+  const el = document.getElementById('oppList');
+  el.innerHTML = '<div class="loader"><div class="ring"></div><div class="lt">Chargement...</div></div>';
+  try {
+    const r = await fetch(API + '?action=getOpportunites');
+    const d = await r.json();
+    opps = Array.isArray(d) ? d : [];
+    renderOpps();
+    updateK();
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="ei">⚠</div><div class="et">Erreur de connexion</div><div class="es">' + e.message + '<br><br>Appuie sur ↻ pour réessayer.</div></div>';
+  }
+}
+
+async function loadDocs() {
+  try {
+    const r = await fetch(API + '?action=getDocuments');
+    const d = await r.json();
+    docs = Array.isArray(d) ? d : [];
+    if (tab === 'docs') renderDocs();
+    updateK();
+  } catch(e) { docs = []; }
+}
+
+async function syncAll() {
+  const b = document.getElementById('syncBtn');
+  b.classList.add('spin');
+  await Promise.all([loadOpps(), loadDocs()]);
+  b.classList.remove('spin');
+  showT('Synchronisé ✓', 'ok');
+}
+
+function renderOpps() {
+  const q = (document.getElementById('q')?.value || '').toLowerCase();
+  const list = opps.filter(o => {
+    const t = (o.titre + ' ' + o.mots + ' ' + o.org + ' ' + o.type).toLowerCase();
+    if (q && !t.includes(q)) return false;
+    if (flt === 'h')      return o.score >= 50;
+    if (flt === 'fellow') return t.includes('fellow');
+    if (flt === 'scholar')return t.includes('scholar') || t.includes('bourse');
+    if (flt === 'conf')   return t.includes('conf');
+    if (flt === 'summer') return t.includes('summer') || t.includes('winter school');
+    if (flt === 'encours')return o.statut === 'En cours';
+    return true;
+  });
+  const el = document.getElementById('oppList');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">◎</div><div class="et">Aucun résultat</div><div class="es">Modifie les filtres ou lance un scraping.</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(o => {
+    const sc = parseInt(o.score) || 0;
+    const c = sc >= 50 ? 'h' : sc >= 35 ? 'm' : 'l';
+    return `<div class="card ${c}" onclick="openO('${x(o.id)}')">
+      <div class="ch"><div class="ct">${x(o.titre)}</div><div class="sp ${c}">${sc}</div></div>
+      <div class="co">${x(o.org||'')}</div>
+      <div class="ctags">
+        ${o.type?`<span class="tag t">${x(o.type)}</span>`:''}
+        ${o.deadline?`<span class="tag d">⏰ ${x(o.deadline)}</span>`:''}
+        ${o.statut==='En cours'?`<span class="tag t">En cours</span>`:''}
+      </div>
+      ${o.mots?`<div class="cm">${x(o.mots)}</div>`:''}
+      <div class="cbtns">
+        <div class="cbtn p" onclick="event.stopPropagation();doLettre('${x(o.id)}')">Lettre ✦</div>
+        <div class="cbtn s" onclick="event.stopPropagation();doAnalyse('${x(o.id)}')">Analyser</div>
+        ${o.lien?`<div class="cbtn" onclick="event.stopPropagation();window.open('${x(o.lien)}','_blank')">Voir →</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDocs() {
+  const el = document.getElementById('docList');
+  if (!docs.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">◇</div><div class="et">Aucun document</div><div class="es">Génère une lettre depuis une opportunité.</div></div>';
+    return;
+  }
+  el.innerHTML = '<div style="padding:0">' + docs.map((d,i) => `
+    <div class="dcard" style="margin-bottom:8px">
+      <div class="dctitle">${x(d.type||'Document')}</div>
+      <div class="dcopp">${x((d.opp||'').slice(0,60))}</div>
+      <div class="dcdate">${x(d.date||'')}</div>
+      <div class="dcprev">${x((d.contenu||'').slice(0,200))}...</div>
+      <div class="cpbtn" onclick="copyD(${i})">Copier le document complet</div>
+    </div>`).join('') + '</div>';
+}
+
+function updateK() {
+  document.getElementById('k1').textContent = opps.length || '–';
+  document.getElementById('k2').textContent = opps.filter(o=>o.score>=50).length || '–';
+  document.getElementById('k3').textContent = opps.filter(o=>o.statut==='À étudier').length || '–';
+  document.getElementById('k4').textContent = docs.length || '–';
+}
+
+function openO(id) {
+  const o = opps.find(x=>x.id===id); if (!o) return;
+  const sc = parseInt(o.score)||0, c = sc>=50?'h':sc>=35?'m':'l';
+  const lbl = sc>=50?'Très pertinent pour ton profil':sc>=35?'Pertinent — quelques axes à renforcer':'Correspondance partielle';
+  document.getElementById('dbody').innerHTML = `
+    <div class="dtype">${x(o.type||'Opportunité')}</div>
+    <div class="dtitle">${x(o.titre)}</div>
+    <div class="dorg">${x(o.org||'')}</div>
+    <div class="sblock">
+      <div class="bscore ${c}">${sc}</div>
+      <div><div class="sit">Score de pertinence</div><div class="sis">${lbl}</div></div>
+    </div>
+    ${o.mots?`<div class="dsec"><div class="dlbl">Mots-clés matchés</div><div class="dmots">${x(o.mots)}</div></div>`:''}
+    <div class="dsec"><div class="dlbl">Détails</div><div class="dval">
+      ${o.zone?`Zone : ${x(o.zone)}<br>`:''}
+      ${o.deadline?`Deadline : <strong style="color:var(--amber)">${x(o.deadline)}</strong><br>`:''}
+      Statut : ${x(o.statut||'–')}
+    </div></div>
+    <div class="dbtns">
+      <div class="dbtn p" onclick="doLettre('${x(o.id)}')">✦ Générer une lettre de motivation</div>
+      <div class="dbtn s" onclick="doAnalyse('${x(o.id)}')">◎ Analyser la compatibilité CV</div>
+      ${o.lien?`<div class="dbtn g" onclick="window.open('${x(o.lien)}','_blank')">Voir l'offre complète →</div>`:''}
+    </div>`;
+  document.getElementById('ov').classList.add('on');
+}
+
+function closeD(e) { if (!e||e.target===document.getElementById('ov')) document.getElementById('ov').classList.remove('on'); }
+
+async function doLettre(id) {
+  document.getElementById('ov').classList.remove('on');
+  showT('⟳ Génération en cours…','',12000);
+  try {
+    await fetch(API+'?action=genererLettre&id='+encodeURIComponent(id));
+    await loadDocs(); updateK();
+    showT('✓ Lettre générée ! Voir Documents','ok');
+    goTab('docs');
+  } catch(e) { showT('Erreur : '+e.message,'err'); }
+}
+
+async function doAnalyse(id) {
+  document.getElementById('ov').classList.remove('on');
+  showT('⟳ Analyse en cours…','',15000);
+  try {
+    await fetch(API+'?action=analyserCompatibilite&id='+encodeURIComponent(id));
+    showT('✓ Analyse terminée !','ok');
+    goTab('analyse');
+    document.getElementById('analyseList').innerHTML =
+      '<div class="empty"><div class="ei">✓</div><div class="et">Analyse terminée</div><div class="es">Ouvre Google Sheets → onglet 🎯 Analyse CV/Offre pour voir le rapport complet détaillé.</div></div>' +
+      '<div style="padding:0 0 8px"><div class="cpbtn" onclick="window.open(\'https://docs.google.com/spreadsheets/d/1wvVcgfH00yUpcZQD4c-pxHSL44uDQLBA3eTOUOfkqBE\',\'_blank\')" style="margin:0 16px">Ouvrir Google Sheets →</div></div>';
+  } catch(e) { showT('Erreur : '+e.message,'err'); }
+}
+
+async function doScrape() {
+  showT('⟳ Scraping en cours…','',20000);
+  try {
+    await fetch(API+'?action=scraper');
+    await loadOpps(); updateK();
+    showT('✓ Scraping terminé !','ok');
+  } catch(e) { showT('Erreur : '+e.message,'err'); }
+}
+
+function copyD(i) {
+  const d = docs[i]; if (!d) return;
+  const t = d.contenu||'';
+  if (navigator.clipboard) { navigator.clipboard.writeText(t).then(()=>showT('✓ Copié !','ok')); }
+  else { const a=document.createElement('textarea'); a.value=t; document.body.appendChild(a); a.select(); document.execCommand('copy'); document.body.removeChild(a); showT('✓ Copié !','ok'); }
+}
+
+function goTab(name, el, nav) {
+  tab = name;
+  ['opps','docs','analyse','cfg'].forEach(t => {
+    const te = document.getElementById('t-'+t); if (te) te.style.display = t===name?'block':'none';
+    const ne = document.getElementById('n-'+t); if (ne) ne.classList.toggle('on', t===name);
+  });
+  document.querySelectorAll('.tabs .tab').forEach((t,i) => t.classList.toggle('on', ['opps','docs','analyse','cfg'][i]===name));
+  if (el) { document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('on')); el.classList.add('on'); }
+  if (name==='docs') renderDocs();
+  if (name==='opps') renderOpps();
+}
+
+function setF(f, el) {
+  flt = f;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  if (el) el.classList.add('on');
+  renderOpps();
+}
+
+function showT(msg, type, dur) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast on'+(type?' '+type:'');
+  clearTimeout(toastT); toastT = setTimeout(()=>el.classList.remove('on'), dur||3000);
+}
+
+function x(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
