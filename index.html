@@ -536,7 +536,10 @@ window.addEventListener('load', () => { loadOpps(); loadDocs(); });
 // ── LOAD DATA ─────────────────────────────────────
 async function loadOpps() {
   try {
-    const r = await fetch(API + '?action=getOpportunites');
+    const r = await fetch(API + '?action=getOpportunites', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
     const d = await r.json();
     opps = Array.isArray(d) ? d : [];
     renderOpps();
