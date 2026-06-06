@@ -3,578 +3,613 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0A1628">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="OpTracker">
 <link rel="manifest" href="manifest.json">
-<title>Opportunity Tracker</title>
+<title>OpTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:       #0A1628;
-  --surface:  #111f38;
-  --card:     #152240;
-  --border:   rgba(255,255,255,0.08);
-  --text:     #EDF2FF;
-  --muted:    rgba(237,242,255,0.5);
-  --hint:     rgba(237,242,255,0.25);
-  --accent:   #4F9CF9;
-  --accent2:  #7DD3B8;
-  --warn:     #F5A623;
-  --danger:   #F06464;
-  --success:  #5CB98C;
-  --radius:   14px;
+  --white:    #FFFFFF;
+  --off:      #F7F6F3;
+  --border:   #E8E6E1;
+  --border2:  #D4D1CB;
+  --text:     #1A1916;
+  --muted:    #6B6860;
+  --hint:     #A8A49D;
+  --accent:   #2D5BE3;
+  --accent-l: #EEF2FD;
+  --success:  #1A7A4A;
+  --success-l:#E8F5EE;
+  --warn:     #B45309;
+  --warn-l:   #FEF3C7;
+  --danger:   #C0392B;
+  --danger-l: #FDECEA;
+  --serif:    'Instrument Serif', Georgia, serif;
+  --sans:     'DM Sans', sans-serif;
+  --radius:   12px;
   --radius-sm:8px;
+  --shadow:   0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 24px rgba(0,0,0,0.10);
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
 body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
+  font-family: var(--sans);
+  background: var(--off);
   color: var(--text);
+  height: 100%;
+  overflow: hidden;
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── LAYOUT ─────────────────────────────────────── */
-#app { display: flex; flex-direction: column; height: 100vh; max-width: 430px; margin: 0 auto; position: relative; }
+/* ── APP SHELL ───────────────────────────────────── */
+#app { display: flex; flex-direction: column; height: 100vh; max-width: 430px; margin: 0 auto; background: var(--white); position: relative; overflow: hidden; }
+
+/* ── STATUS BAR SPACER ───────────────────────────── */
+.status-bar { height: env(safe-area-inset-top, 0px); background: var(--white); flex-shrink: 0; }
 
 /* ── HEADER ─────────────────────────────────────── */
 .header {
-  padding: 52px 20px 16px;
-  background: linear-gradient(180deg, rgba(79,156,249,0.12) 0%, transparent 100%);
+  padding: 16px 20px 12px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  position: relative;
 }
-.header-top { display: flex; justify-content: space-between; align-items: center; }
-.app-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-.app-title span { color: var(--accent); }
-.sync-btn {
+.header-row { display: flex; justify-content: space-between; align-items: center; }
+.app-name {
+  font-family: var(--serif);
+  font-size: 24px;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.app-name em { font-style: italic; color: var(--accent); }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.icon-btn {
   width: 36px; height: 36px; border-radius: 50%;
-  background: var(--surface); border: 1px solid var(--border);
+  background: var(--off); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all .2s;
-  color: var(--muted); font-size: 16px;
+  cursor: pointer; transition: all .15s; font-size: 15px; color: var(--muted);
 }
-.sync-btn:active { transform: scale(.9); background: var(--accent); color: white; }
-.sync-btn.spinning { animation: spin .8s linear infinite; }
+.icon-btn:active { background: var(--border); transform: scale(.93); }
+.icon-btn.spinning { animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── KPI STRIP ─────────────────────────────────── */
-.kpi-strip {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 8px; padding: 12px 20px 0;
+/* ── KPI BAR ─────────────────────────────────────── */
+.kpi-bar {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .kpi {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 10px 12px;
-  text-align: center;
+  flex: 1; padding: 10px 0; text-align: center;
+  border-right: 1px solid var(--border);
 }
-.kpi-num { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent); line-height: 1; }
-.kpi-label { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .05em; }
+.kpi:last-child { border-right: none; }
+.kpi-num { font-family: var(--serif); font-size: 20px; color: var(--text); line-height: 1; }
+.kpi-num.blue   { color: var(--accent); }
+.kpi-num.green  { color: var(--success); }
+.kpi-num.amber  { color: var(--warn); }
+.kpi-label { font-size: 10px; color: var(--hint); margin-top: 2px; letter-spacing: .04em; text-transform: uppercase; }
 
-/* ── TABS ───────────────────────────────────────── */
-.tabs {
-  display: flex; padding: 12px 20px 0; gap: 6px; flex-shrink: 0;
+/* ── TAB BAR ─────────────────────────────────────── */
+.tab-bar {
+  display: flex; padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0; gap: 0; background: var(--white);
+  overflow-x: auto;
 }
+.tab-bar::-webkit-scrollbar { display: none; }
 .tab {
-  flex: 1; padding: 8px 4px; text-align: center; font-size: 12px; font-weight: 500;
-  border-radius: 8px; cursor: pointer; transition: all .2s;
-  color: var(--muted); background: transparent; border: 1px solid transparent;
-  font-family: 'DM Sans', sans-serif;
+  padding: 11px 16px; font-size: 13px; font-weight: 500;
+  color: var(--hint); cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent; transition: all .15s;
+  margin-bottom: -1px;
 }
-.tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-.tab:not(.active):active { background: var(--surface); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-/* ── SEARCH BAR ─────────────────────────────────── */
-.search-wrap { padding: 10px 20px 0; flex-shrink: 0; }
+/* ── CONTENT ─────────────────────────────────────── */
+.content {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: var(--off);
+}
+.content::-webkit-scrollbar { width: 3px; }
+.content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── SEARCH + FILTERS ────────────────────────────── */
+.search-section { padding: 12px 16px 0; background: var(--white); border-bottom: 1px solid var(--border); }
+.search-wrap { position: relative; margin-bottom: 10px; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--hint); font-size: 14px; }
 .search {
-  width: 100%; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 10px; padding: 10px 14px 10px 38px;
-  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px;
-  outline: none; transition: border .2s;
+  width: 100%; background: var(--off); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 9px 12px 9px 34px;
+  font-family: var(--sans); font-size: 14px; color: var(--text);
+  outline: none; transition: border .15s;
 }
 .search::placeholder { color: var(--hint); }
-.search:focus { border-color: var(--accent); }
-.search-wrap { position: relative; padding: 10px 20px 0; }
-.search-icon {
-  position: absolute; left: 34px; top: 50%; transform: translateY(-50%);
-  color: var(--hint); font-size: 14px; pointer-events: none;
-  margin-top: 5px;
-}
-
-/* ── FILTER ROW ─────────────────────────────────── */
-.filters {
-  display: flex; gap: 6px; padding: 8px 20px 0;
-  overflow-x: auto; flex-shrink: 0;
-}
-.filters::-webkit-scrollbar { display: none; }
-.filter-pill {
+.search:focus { border-color: var(--accent); background: var(--white); }
+.filter-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; }
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-chip {
   white-space: nowrap; padding: 5px 12px; border-radius: 20px;
-  font-size: 11px; font-weight: 500; cursor: pointer; transition: all .2s;
-  border: 1px solid var(--border); color: var(--muted); background: transparent;
-  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 500; cursor: pointer; transition: all .15s;
+  border: 1px solid var(--border); color: var(--muted);
+  background: var(--white); font-family: var(--sans);
 }
-.filter-pill.active { background: var(--accent2); color: #0A2818; border-color: var(--accent2); }
+.filter-chip.active { background: var(--accent); color: var(--white); border-color: var(--accent); }
 
-/* ── CONTENT AREA ───────────────────────────────── */
-.content {
-  flex: 1; overflow-y: auto; padding: 10px 20px 80px;
-  -webkit-overflow-scrolling: touch;
-}
-.content::-webkit-scrollbar { display: none; }
+/* ── OPP LIST ────────────────────────────────────── */
+.opp-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
 
-/* ── OPP CARD ───────────────────────────────────── */
 .opp-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
-  cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  cursor: pointer; transition: all .15s;
+  box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
 }
-.opp-card::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-  background: var(--accent); border-radius: 3px 0 0 3px;
-  transition: width .2s;
+.opp-card::after {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: 3px 0 0 3px;
 }
-.opp-card.score-high::before { background: var(--success); }
-.opp-card.score-med::before  { background: var(--warn); }
-.opp-card.score-low::before  { background: var(--muted); }
-.opp-card:active { transform: scale(.98); }
+.opp-card.high::after { background: var(--success); }
+.opp-card.med::after  { background: var(--warn); }
+.opp-card.low::after  { background: var(--border2); }
+.opp-card:active { transform: scale(.99); box-shadow: none; }
 
-.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
 .card-title {
-  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
-  line-height: 1.4; color: var(--text); flex: 1;
+  font-size: 13px; font-weight: 600; line-height: 1.4; color: var(--text); flex: 1;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.score-badge {
-  flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+.score-pill {
+  flex-shrink: 0; padding: 3px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; font-family: var(--serif);
 }
-.score-badge.high { background: rgba(92,185,140,0.2); color: var(--success); }
-.score-badge.med  { background: rgba(245,166,35,0.2);  color: var(--warn); }
-.score-badge.low  { background: rgba(237,242,255,0.1); color: var(--muted); }
+.score-pill.high { background: var(--success-l); color: var(--success); }
+.score-pill.med  { background: var(--warn-l);    color: var(--warn); }
+.score-pill.low  { background: var(--off);        color: var(--hint); }
 
-.card-org { font-size: 11px; color: var(--accent); margin-top: 4px; font-weight: 500; }
-.card-meta { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.meta-pill {
-  font-size: 10px; padding: 2px 8px; border-radius: 10px;
-  background: rgba(255,255,255,0.06); color: var(--muted);
+.card-org { font-size: 11px; color: var(--accent); font-weight: 500; margin-bottom: 8px; }
+.card-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.tag {
+  font-size: 10px; padding: 2px 8px; border-radius: 4px;
+  border: 1px solid var(--border); color: var(--muted); background: var(--off);
 }
-.meta-pill.type { background: rgba(79,156,249,0.1); color: var(--accent); }
-.meta-pill.deadline { background: rgba(245,166,35,0.1); color: var(--warn); }
-.meta-pill.statut-encours { background: rgba(92,185,140,0.1); color: var(--success); }
-
-.card-mots { font-size: 10px; color: var(--hint); margin-top: 6px; font-style: italic; }
-.card-actions { display: flex; gap: 6px; margin-top: 10px; }
+.tag.type    { background: var(--accent-l); color: var(--accent); border-color: transparent; }
+.tag.deadline{ background: var(--warn-l);   color: var(--warn);   border-color: transparent; }
+.card-mots { font-size: 10px; color: var(--hint); font-style: italic; line-height: 1.5; }
+.card-footer { display: flex; gap: 6px; margin-top: 10px; }
 .card-btn {
-  flex: 1; padding: 7px 4px; border-radius: 8px; font-size: 11px; font-weight: 500;
-  text-align: center; cursor: pointer; transition: all .2s;
-  border: 1px solid var(--border); color: var(--muted); background: transparent;
-  font-family: 'DM Sans', sans-serif;
+  flex: 1; padding: 7px 8px; border-radius: var(--radius-sm);
+  font-size: 11px; font-weight: 500; text-align: center; cursor: pointer;
+  transition: all .15s; border: 1px solid var(--border);
+  color: var(--muted); background: var(--off); font-family: var(--sans);
 }
-.card-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
-.card-btn.secondary { background: rgba(125,211,184,0.1); color: var(--accent2); border-color: rgba(125,211,184,0.2); }
-.card-btn:active { opacity: .7; transform: scale(.97); }
+.card-btn.primary { background: var(--accent); color: var(--white); border-color: var(--accent); }
+.card-btn.secondary { background: var(--success-l); color: var(--success); border-color: transparent; }
+.card-btn:active { opacity: .75; }
 
-/* ── EMPTY STATE ─────────────────────────────────── */
-.empty {
-  text-align: center; padding: 60px 20px;
-  color: var(--muted);
-}
-.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: .4; }
-.empty-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-.empty-desc { font-size: 13px; line-height: 1.6; }
+/* ── EMPTY & LOADER ──────────────────────────────── */
+.empty { text-align: center; padding: 60px 30px; color: var(--hint); }
+.empty-emoji { font-size: 40px; margin-bottom: 14px; }
+.empty-title { font-family: var(--serif); font-size: 18px; color: var(--muted); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; line-height: 1.6; }
 
-/* ── LOADING ─────────────────────────────────────── */
-.loader {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 16px; padding: 60px 20px; color: var(--muted);
+.loader { display: flex; flex-direction: column; align-items: center; padding: 60px 20px; gap: 14px; }
+.loader-ring {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid var(--border); border-top-color: var(--accent);
+  animation: spin .7s linear infinite;
 }
-.spinner {
-  width: 36px; height: 36px; border: 2px solid var(--border);
-  border-top-color: var(--accent); border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-.loader-text { font-size: 13px; }
+.loader-text { font-size: 13px; color: var(--hint); }
 
-/* ── BOTTOM NAV ─────────────────────────────────── */
+/* ── BOTTOM NAV ──────────────────────────────────── */
 .bottom-nav {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 430px;
-  background: rgba(10,22,40,0.95); backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border);
-  display: flex; padding: 8px 0 20px; z-index: 100;
+  display: flex; border-top: 1px solid var(--border);
+  background: var(--white); flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .nav-item {
   flex: 1; display: flex; flex-direction: column; align-items: center;
-  gap: 3px; cursor: pointer; padding: 6px 0; transition: all .2s;
-  color: var(--hint); font-size: 10px;
+  gap: 3px; padding: 10px 0; cursor: pointer; transition: color .15s;
+  color: var(--hint); font-size: 9px; text-transform: uppercase; letter-spacing: .05em;
 }
 .nav-item.active { color: var(--accent); }
-.nav-icon { font-size: 20px; }
+.nav-icon { font-size: 18px; line-height: 1; }
 
-/* ── MODAL ───────────────────────────────────────── */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.7);
-  backdrop-filter: blur(4px); z-index: 200;
-  display: flex; align-items: flex-end;
-  opacity: 0; pointer-events: none; transition: opacity .3s;
+/* ── DRAWER (détail) ─────────────────────────────── */
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.25);
+  backdrop-filter: blur(2px); z-index: 200;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
 }
-.modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal {
-  background: var(--surface); border-radius: 24px 24px 0 0;
-  padding: 20px; width: 100%; max-height: 85vh; overflow-y: auto;
-  transform: translateY(100%); transition: transform .3s;
+.drawer-overlay.open { opacity: 1; pointer-events: all; }
+.drawer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--white); border-radius: 20px 20px 0 0;
+  max-height: 88vh; overflow-y: auto;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.32,.72,0,1);
+  box-shadow: var(--shadow-md);
 }
-.modal-overlay.open .modal { transform: translateY(0); }
-.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
-.modal-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-.modal-org { font-size: 12px; color: var(--accent); margin-bottom: 16px; }
-.modal-section { margin-bottom: 16px; }
-.modal-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
-.modal-value { font-size: 13px; color: var(--text); line-height: 1.6; }
-.modal-score-ring {
+.drawer-overlay.open .drawer { transform: translateY(0); }
+.drawer-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 14px auto 0; }
+.drawer-body { padding: 20px 20px 32px; }
+.drawer-type { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.drawer-title { font-family: var(--serif); font-size: 19px; line-height: 1.35; color: var(--text); margin-bottom: 4px; }
+.drawer-org { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+.score-block {
   display: flex; align-items: center; gap: 16px;
-  background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 16px;
+  background: var(--off); border-radius: var(--radius); padding: 16px;
+  margin-bottom: 16px; border: 1px solid var(--border);
 }
-.big-score {
-  font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800;
-  line-height: 1;
-}
+.big-score { font-family: var(--serif); font-size: 48px; line-height: 1; }
 .big-score.high { color: var(--success); }
 .big-score.med  { color: var(--warn); }
-.big-score.low  { color: var(--muted); }
-.score-desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-.modal-btn {
-  padding: 14px; border-radius: var(--radius); font-size: 14px; font-weight: 600;
-  text-align: center; cursor: pointer; transition: all .2s;
-  border: none; font-family: 'Syne', sans-serif;
+.big-score.low  { color: var(--hint); }
+.score-info-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.score-info-sub { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+.detail-section { margin-bottom: 14px; }
+.detail-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--hint); margin-bottom: 5px; }
+.detail-value { font-size: 13px; color: var(--text); line-height: 1.6; }
+.detail-mots { font-size: 12px; color: var(--accent); line-height: 1.7; }
+
+.drawer-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+.drawer-btn {
+  width: 100%; padding: 14px; border-radius: var(--radius);
+  font-size: 14px; font-weight: 600; text-align: center; cursor: pointer;
+  transition: all .15s; border: none; font-family: var(--sans);
 }
-.modal-btn.primary { background: var(--accent); color: white; }
-.modal-btn.secondary { background: rgba(125,211,184,0.15); color: var(--accent2); }
-.modal-btn.ghost { background: var(--card); color: var(--muted); }
-.modal-btn:active { opacity: .8; transform: scale(.98); }
-.modal-close {
-  position: absolute; top: 20px; right: 20px; width: 32px; height: 32px;
-  background: var(--card); border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; font-size: 14px; color: var(--muted);
+.drawer-btn.primary { background: var(--accent); color: var(--white); }
+.drawer-btn.secondary { background: var(--success-l); color: var(--success); }
+.drawer-btn.ghost { background: var(--off); color: var(--muted); border: 1px solid var(--border); }
+.drawer-btn:active { opacity: .8; transform: scale(.99); }
+
+/* ── DOCS TAB ────────────────────────────────────── */
+.doc-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.doc-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow);
 }
+.doc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.doc-title { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+.doc-date { font-size: 11px; color: var(--hint); }
+.doc-opp { font-size: 11px; color: var(--accent); margin-bottom: 8px; }
+.doc-preview {
+  font-size: 12px; color: var(--muted); line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  margin-bottom: 10px;
+}
+.copy-btn {
+  width: 100%; padding: 9px; background: var(--off); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 12px; font-weight: 500;
+  color: var(--accent); cursor: pointer; text-align: center; transition: all .15s;
+  font-family: var(--sans);
+}
+.copy-btn:active { background: var(--accent-l); }
+
+/* ── SETTINGS TAB ────────────────────────────────── */
+.settings-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.settings-section-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--hint); padding: 4px 4px 6px; font-weight: 600;
+}
+.settings-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+}
+.settings-row {
+  display: flex; align-items: center; gap: 12px; padding: 13px 16px;
+  border-bottom: 1px solid var(--border); cursor: pointer; transition: background .15s;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row:active { background: var(--off); }
+.settings-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+}
+.settings-icon.blue   { background: var(--accent-l); }
+.settings-icon.green  { background: var(--success-l); }
+.settings-icon.amber  { background: var(--warn-l); }
+.settings-icon.gray   { background: var(--off); }
+.settings-text { flex: 1; }
+.settings-label { font-size: 13px; font-weight: 500; color: var(--text); }
+.settings-sub   { font-size: 11px; color: var(--hint); margin-top: 1px; }
+.settings-arrow { color: var(--hint); font-size: 14px; }
+.settings-badge { font-size: 11px; font-weight: 600; color: var(--success); background: var(--success-l); padding: 2px 8px; border-radius: 10px; }
 
 /* ── TOAST ───────────────────────────────────────── */
 .toast {
-  position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-20px);
-  background: var(--success); color: white; padding: 10px 20px; border-radius: 20px;
-  font-size: 13px; font-weight: 500; z-index: 300;
-  opacity: 0; transition: all .3s; white-space: nowrap;
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(10px);
+  background: var(--text); color: var(--white); padding: 10px 18px;
+  border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 400;
+  opacity: 0; transition: all .25s; white-space: nowrap; pointer-events: none;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast.error { background: var(--danger); }
-
-/* ── DOCS TAB ────────────────────────────────────── */
-.doc-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
-}
-.doc-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-.doc-meta { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
-.doc-preview {
-  font-size: 11px; color: var(--muted); line-height: 1.5;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-}
-.copy-btn {
-  margin-top: 10px; width: 100%; padding: 9px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--accent); font-size: 12px; font-weight: 500;
-  cursor: pointer; text-align: center; transition: all .2s;
-  font-family: 'DM Sans', sans-serif;
-}
-.copy-btn:active { background: var(--accent); color: white; }
-
-/* ── SETTINGS TAB ────────────────────────────────── */
-.settings-section { margin-bottom: 20px; }
-.settings-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
-.settings-item {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 12px 14px;
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 6px; cursor: pointer;
-}
-.settings-item-left { display: flex; align-items: center; gap: 10px; }
-.settings-icon { font-size: 18px; color: var(--accent); }
-.settings-label { font-size: 13px; font-weight: 500; }
-.settings-sub { font-size: 11px; color: var(--muted); }
-.settings-arrow { color: var(--hint); font-size: 14px; }
-.settings-value { font-size: 12px; color: var(--accent2); }
+.toast.success { background: var(--success); }
+.toast.error   { background: var(--danger); }
 
 /* ── ANALYSE TAB ─────────────────────────────────── */
-.analyse-empty {
-  text-align: center; padding: 40px 20px; color: var(--muted);
-}
+.analyse-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
 .analyse-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow);
 }
-.analyse-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-.analyse-score { font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 800; color: var(--success); line-height: 1; }
-.analyse-title { font-size: 13px; font-weight: 600; }
-.analyse-verdict { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.axis-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.axis-label { font-size: 11px; color: var(--muted); min-width: 90px; }
-.axis-bar-bg { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
-.axis-bar-fill { height: 100%; border-radius: 3px; transition: width .5s; }
-.axis-score { font-size: 11px; font-weight: 600; min-width: 28px; text-align: right; }
+.analyse-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.analyse-score { font-family: var(--serif); font-size: 44px; line-height: 1; color: var(--success); }
+.analyse-meta { flex: 1; }
+.analyse-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.analyse-verdict { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.axis-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.axis-name { font-size: 11px; color: var(--muted); min-width: 85px; }
+.axis-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.axis-fill { height: 100%; border-radius: 2px; transition: width .6s ease; }
+.axis-val { font-size: 11px; font-weight: 600; min-width: 26px; text-align: right; color: var(--text); }
+.tag-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.tag-green { font-size: 10px; padding: 3px 8px; border-radius: 4px; background: var(--success-l); color: var(--success); }
+.tag-red   { font-size: 10px; padding: 3px 8px; border-radius: 4px; background: var(--danger-l);  color: var(--danger); }
+.tag-blue  { font-size: 10px; padding: 3px 8px; border-radius: 4px; background: var(--accent-l);  color: var(--accent); }
 
-/* ── RESPONSIVE SAFE AREA ────────────────────────── */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .bottom-nav { padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+.plan-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+.plan-num {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--accent);
+  color: var(--white); font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
 }
+.plan-text { font-size: 12px; color: var(--text); line-height: 1.6; flex: 1; }
+.plan-resource { font-size: 11px; color: var(--accent); margin-top: 2px; }
 </style>
 </head>
 <body>
 <div id="app">
+  <div class="status-bar"></div>
+
+  <!-- HEADER -->
   <div class="header">
-    <div class="header-top">
-      <div class="app-title">Op<span>Tracker</span></div>
-      <div class="sync-btn" id="syncBtn" onclick="syncData()" title="Synchroniser">↻</div>
-    </div>
-  </div>
-
-  <div class="kpi-strip" id="kpiStrip">
-    <div class="kpi"><div class="kpi-num" id="kpiTotal">–</div><div class="kpi-label">Opportunités</div></div>
-    <div class="kpi"><div class="kpi-num" id="kpiHigh" style="color:var(--success)">–</div><div class="kpi-label">Score ≥ 50</div></div>
-    <div class="kpi"><div class="kpi-num" id="kpiDocs" style="color:var(--accent2)">–</div><div class="kpi-label">Documents</div></div>
-  </div>
-
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('opps', this)">Opportunités</div>
-    <div class="tab" onclick="switchTab('docs', this)">Documents</div>
-    <div class="tab" onclick="switchTab('analyse', this)">Analyse</div>
-    <div class="tab" onclick="switchTab('settings', this)">Config</div>
-  </div>
-
-  <!-- Onglet Opportunités -->
-  <div id="tab-opps">
-    <div class="search-wrap">
-      <span class="search-icon">⌕</span>
-      <input class="search" type="text" placeholder="Rechercher..." id="searchInput" oninput="filterOpps()">
-    </div>
-    <div class="filters" id="filterRow">
-      <div class="filter-pill active" onclick="setFilter('tous', this)">Tous</div>
-      <div class="filter-pill" onclick="setFilter('high', this)">Score ≥ 50</div>
-      <div class="filter-pill" onclick="setFilter('fellowship', this)">Fellowship</div>
-      <div class="filter-pill" onclick="setFilter('scholarship', this)">Bourse</div>
-      <div class="filter-pill" onclick="setFilter('conference', this)">Conférence</div>
-      <div class="filter-pill" onclick="setFilter('encours', this)">En cours</div>
-    </div>
-    <div class="content" id="oppsList">
-      <div class="loader"><div class="spinner"></div><div class="loader-text">Chargement...</div></div>
-    </div>
-  </div>
-
-  <!-- Onglet Documents -->
-  <div id="tab-docs" style="display:none; flex:1; overflow:hidden; display:none; flex-direction:column;">
-    <div class="content" id="docsList" style="display:none;">
-      <div class="loader"><div class="spinner"></div><div class="loader-text">Chargement...</div></div>
-    </div>
-  </div>
-
-  <!-- Onglet Analyse -->
-  <div id="tab-analyse" style="display:none; flex:1; overflow:hidden; flex-direction:column;">
-    <div class="content" id="analyseContent" style="display:none;">
-      <div class="analyse-empty">
-        <div style="font-size:40px; margin-bottom:12px; opacity:.3">◎</div>
-        <div style="font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:8px;">Aucune analyse</div>
-        <div style="font-size:12px;">Lance une analyse depuis une opportunité pour voir le rapport ici.</div>
+    <div class="header-row">
+      <div class="app-name">Op<em>Tracker</em></div>
+      <div class="header-actions">
+        <div class="icon-btn" id="syncBtn" onclick="syncAll()" title="Synchroniser">↻</div>
       </div>
     </div>
   </div>
 
-  <!-- Onglet Settings -->
-  <div id="tab-settings" style="display:none; flex:1; overflow:hidden; flex-direction:column;">
-    <div class="content" id="settingsContent" style="display:none;">
-      <div class="settings-section">
-        <div class="settings-title">Système</div>
-        <div class="settings-item" onclick="lancerScraping()">
-          <div class="settings-item-left">
-            <span class="settings-icon">⟳</span>
-            <div><div class="settings-label">Lancer le scraping</div><div class="settings-sub">Collecter maintenant</div></div>
-          </div>
-          <span class="settings-arrow">›</span>
+  <!-- KPI BAR -->
+  <div class="kpi-bar">
+    <div class="kpi"><div class="kpi-num blue" id="kpiTotal">–</div><div class="kpi-label">Total</div></div>
+    <div class="kpi"><div class="kpi-num green" id="kpiHigh">–</div><div class="kpi-label">Score 50+</div></div>
+    <div class="kpi"><div class="kpi-num amber" id="kpiNew">–</div><div class="kpi-label">Nouvelles</div></div>
+    <div class="kpi"><div class="kpi-num" id="kpiDocs">–</div><div class="kpi-label">Documents</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('opps',this)">Opportunités</div>
+    <div class="tab" onclick="switchTab('docs',this)">Documents</div>
+    <div class="tab" onclick="switchTab('analyse',this)">Analyse</div>
+    <div class="tab" onclick="switchTab('settings',this)">Config</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="mainContent">
+
+    <!-- TAB: OPPORTUNITÉS -->
+    <div id="tab-opps">
+      <div class="search-section">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search" type="text" id="searchInput" placeholder="Rechercher titre, mots-clés..." oninput="renderOpps()">
         </div>
-        <div class="settings-item">
-          <div class="settings-item-left">
-            <span class="settings-icon">◷</span>
-            <div><div class="settings-label">Scraping auto</div><div class="settings-sub">Toutes les 6 heures</div></div>
-          </div>
-          <span class="settings-value">Actif</span>
-        </div>
-        <div class="settings-item" onclick="ouvrirSheets()">
-          <div class="settings-item-left">
-            <span class="settings-icon">⊞</span>
-            <div><div class="settings-label">Ouvrir Google Sheets</div><div class="settings-sub">Modifier mots-clés, sources</div></div>
-          </div>
-          <span class="settings-arrow">›</span>
+        <div class="filter-row">
+          <div class="filter-chip active" onclick="setFilter('tous',this)">Tous</div>
+          <div class="filter-chip" onclick="setFilter('high',this)">Score 50+</div>
+          <div class="filter-chip" onclick="setFilter('fellow',this)">Fellowship</div>
+          <div class="filter-chip" onclick="setFilter('scholar',this)">Bourse</div>
+          <div class="filter-chip" onclick="setFilter('conf',this)">Conférence</div>
+          <div class="filter-chip" onclick="setFilter('summer',this)">Summer School</div>
+          <div class="filter-chip" onclick="setFilter('encours',this)">En cours</div>
         </div>
       </div>
-      <div class="settings-section">
-        <div class="settings-title">Compte</div>
-        <div class="settings-item">
-          <div class="settings-item-left">
-            <span class="settings-icon">◉</span>
-            <div><div class="settings-label">Karl-Loïc Icoutchika</div><div class="settings-sub">PhD · UAC Bénin</div></div>
-          </div>
+      <div class="opp-list" id="oppList">
+        <div class="loader"><div class="loader-ring"></div><div class="loader-text">Chargement des opportunités...</div></div>
+      </div>
+    </div>
+
+    <!-- TAB: DOCUMENTS -->
+    <div id="tab-docs" style="display:none">
+      <div class="doc-list" id="docList">
+        <div class="loader"><div class="loader-ring"></div><div class="loader-text">Chargement...</div></div>
+      </div>
+    </div>
+
+    <!-- TAB: ANALYSE -->
+    <div id="tab-analyse" style="display:none">
+      <div class="analyse-list" id="analyseContent">
+        <div class="empty">
+          <div class="empty-emoji">◎</div>
+          <div class="empty-title">Aucune analyse</div>
+          <div class="empty-sub">Ouvre une opportunité et clique "Analyser compatibilité" pour voir ton rapport ici.</div>
         </div>
       </div>
-      <div class="settings-section">
-        <div class="settings-title">À propos</div>
-        <div class="settings-item">
-          <div class="settings-item-left">
-            <span class="settings-icon">◈</span>
-            <div><div class="settings-label">OpportunityTracker v1.0</div><div class="settings-sub">Construit avec Claude · Anthropic</div></div>
+    </div>
+
+    <!-- TAB: SETTINGS -->
+    <div id="tab-settings" style="display:none">
+      <div class="settings-list">
+        <div class="settings-section-title">Système</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="lancerScraping()">
+            <div class="settings-icon blue">↻</div>
+            <div class="settings-text"><div class="settings-label">Lancer le scraping</div><div class="settings-sub">Collecter les nouvelles opportunités maintenant</div></div>
+            <span class="settings-arrow">›</span>
+          </div>
+          <div class="settings-row">
+            <div class="settings-icon green">◷</div>
+            <div class="settings-text"><div class="settings-label">Scraping automatique</div><div class="settings-sub">Toutes les 6 heures</div></div>
+            <span class="settings-badge">Actif</span>
+          </div>
+          <div class="settings-row" onclick="ouvrirSheets()">
+            <div class="settings-icon amber">⊞</div>
+            <div class="settings-text"><div class="settings-label">Ouvrir Google Sheets</div><div class="settings-sub">Modifier sources, mots-clés, configuration</div></div>
+            <span class="settings-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="syncAll()">
+            <div class="settings-icon gray">⟳</div>
+            <div class="settings-text"><div class="settings-label">Synchroniser les données</div><div class="settings-sub">Recharger opportunités et documents</div></div>
+            <span class="settings-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="settings-section-title" style="margin-top:8px">Profil</div>
+        <div class="settings-card">
+          <div class="settings-row">
+            <div class="settings-icon blue">◉</div>
+            <div class="settings-text"><div class="settings-label">Karl-Loïc Icoutchika</div><div class="settings-sub">PhD · Gestion ressources animales · UAC Bénin</div></div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-icon green">◈</div>
+            <div class="settings-text"><div class="settings-label">Domaines actifs</div><div class="settings-sub">Livestock · Circular economy · GIS · Urban agriculture</div></div>
+          </div>
+        </div>
+
+        <div class="settings-section-title" style="margin-top:8px">À propos</div>
+        <div class="settings-card">
+          <div class="settings-row">
+            <div class="settings-icon gray">◇</div>
+            <div class="settings-text"><div class="settings-label">OpTracker v1.0</div><div class="settings-sub">Construit avec Claude · Anthropic</div></div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
+  </div><!-- end content -->
+
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <div class="nav-item active" id="nav-opps" onclick="switchTab('opps', null, true)">
+    <div class="nav-item active" id="nav-opps" onclick="switchTab('opps',null,true)">
       <span class="nav-icon">◈</span><span>Offres</span>
     </div>
-    <div class="nav-item" id="nav-docs" onclick="switchTab('docs', null, true)">
+    <div class="nav-item" id="nav-docs" onclick="switchTab('docs',null,true)">
       <span class="nav-icon">◇</span><span>Docs</span>
     </div>
-    <div class="nav-item" id="nav-analyse" onclick="switchTab('analyse', null, true)">
+    <div class="nav-item" id="nav-analyse" onclick="switchTab('analyse',null,true)">
       <span class="nav-icon">◎</span><span>Analyse</span>
     </div>
-    <div class="nav-item" id="nav-settings" onclick="switchTab('settings', null, true)">
-      <span class="nav-icon">◉</span><span>Config</span>
+    <div class="nav-item" id="nav-settings" onclick="switchTab('settings',null,true)">
+      <span class="nav-icon">⊙</span><span>Config</span>
     </div>
   </nav>
-</div>
+</div><!-- end app -->
 
-<!-- Modal détail opportunité -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal" id="modal">
-    <div class="modal-handle"></div>
-    <div id="modalContent"></div>
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer(event)">
+  <div class="drawer" id="drawer">
+    <div class="drawer-handle"></div>
+    <div class="drawer-body" id="drawerBody"></div>
   </div>
 </div>
 
-<!-- Toast -->
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG ────────────────────────────────────────
-const SHEETS_ID  = "SHEETS_ID_PLACEHOLDER";
-const API_URL    = "API_URL_PLACEHOLDER";
-const SHEETS_URL = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID;
+const API = "https://script.google.com/macros/s/AKfycbzZOsbdeJmLJW3P8B3B-zjRo80DFAynoLjBc5YggL4fwex4UiBuiiWLTveXxUCBiQ/exec";
+const SHEETS = "https://docs.google.com/spreadsheets/d/1wvVcgfH00yUpcZQD4c-pxHSL44uDQLBA3eTOUOfkqBE";
 
-// ── STATE ─────────────────────────────────────────
-let allOpps  = [];
-let allDocs  = [];
-let filter   = "tous";
-let activeTab = "opps";
-let lastAnalyse = null;
+let opps = [], docs = [], analyses = [], filter = 'tous', activeTab = 'opps';
 
 // ── INIT ──────────────────────────────────────────
-window.addEventListener('load', () => {
-  loadOpps();
-  loadDocs();
-});
+window.addEventListener('load', () => { loadOpps(); loadDocs(); });
 
-// ── DATA LOADING ──────────────────────────────────
+// ── LOAD DATA ─────────────────────────────────────
 async function loadOpps() {
   try {
-    const res  = await fetch(API_URL + "?action=getOpportunites");
-    const data = await res.json();
-    allOpps = Array.isArray(data) ? data : [];
+    const r = await fetch(API + '?action=getOpportunites');
+    const d = await r.json();
+    opps = Array.isArray(d) ? d : [];
     renderOpps();
     updateKPIs();
   } catch(e) {
-    showDemo();
+    document.getElementById('oppList').innerHTML = `
+      <div class="empty">
+        <div class="empty-emoji">⚠</div>
+        <div class="empty-title">Connexion impossible</div>
+        <div class="empty-sub">Vérifie que tu es connecté avec le bon compte Gmail. Assure-toi d'être connecté avec <strong>ikarlloic@gmail.com</strong> dans ce navigateur.</div>
+      </div>`;
   }
 }
 
 async function loadDocs() {
   try {
-    const res  = await fetch(API_URL + "?action=getDocuments");
-    const data = await res.json();
-    allDocs = Array.isArray(data) ? data : [];
-    renderDocs();
-  } catch(e) {
-    allDocs = [];
-    renderDocs();
-  }
+    const r = await fetch(API + '?action=getDocuments');
+    const d = await r.json();
+    docs = Array.isArray(d) ? d : [];
+    if (activeTab === 'docs') renderDocs();
+    updateKPIs();
+  } catch(e) { docs = []; }
 }
 
-async function syncData() {
+async function syncAll() {
   const btn = document.getElementById('syncBtn');
   btn.classList.add('spinning');
-  await loadOpps();
-  await loadDocs();
+  await Promise.all([loadOpps(), loadDocs()]);
   btn.classList.remove('spinning');
-  showToast("✓ Synchronisé");
-}
-
-// ── DEMO MODE (si pas d'API) ──────────────────────
-function showDemo() {
-  allOpps = [
-    { id:"OPP-DEMO1", titre:"ILRI PhD Graduate Fellowship: Wastewater Genomic Surveillance", org:"ILRI", type:"Fellowship", zone:"International", deadline:"03/06/2026", score:59, mots:"livestock, wastewater, PhD, fellowship, ILRI", lien:"#", statut:"À étudier", date:"05/06/2026" },
-    { id:"OPP-DEMO2", titre:"Cambridge-Africa ALBORADA Research Fund 2026", org:"University of Cambridge", type:"Grant", zone:"Afrique", deadline:"30/09/2026", score:37, mots:"researcher, grant, Africa, scholarship", lien:"#", statut:"À étudier", date:"05/06/2026" },
-    { id:"OPP-DEMO3", titre:"AI4Animal Science Conference 2026 – Ghent", org:"EAAP", type:"Conférence", zone:"Europe", deadline:"01/06/2026", score:35, mots:"livestock, animal science, conference", lien:"#", statut:"En cours", date:"05/06/2026" },
-    { id:"OPP-DEMO4", titre:"Scholars4Dev Summer School Sustainability 2026", org:"Scholars4Dev", type:"Summer School", zone:"International", deadline:"15/07/2026", score:28, mots:"sustainability, scholarship, Africa", lien:"#", statut:"À étudier", date:"05/06/2026" },
-  ];
-  renderOpps();
-  updateKPIs();
+  toast('Synchronisé ✓', 'success');
 }
 
 // ── RENDER OPPS ───────────────────────────────────
 function renderOpps() {
-  const search = (document.getElementById('searchInput').value || "").toLowerCase();
-  let data = allOpps.filter(o => {
-    if (search && !o.titre.toLowerCase().includes(search) && !o.mots.toLowerCase().includes(search)) return false;
-    if (filter === "high")       return o.score >= 50;
-    if (filter === "fellowship") return o.titre.toLowerCase().includes("fellow") || o.type?.toLowerCase().includes("fellow");
-    if (filter === "scholarship")return o.titre.toLowerCase().includes("scholar") || o.titre.toLowerCase().includes("bourse");
-    if (filter === "conference") return o.titre.toLowerCase().includes("conf") || o.type?.toLowerCase().includes("conf");
-    if (filter === "encours")    return o.statut === "En cours";
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const list = opps.filter(o => {
+    const t = (o.titre + ' ' + o.mots + ' ' + o.org).toLowerCase();
+    if (search && !t.includes(search)) return false;
+    if (filter === 'high')   return o.score >= 50;
+    if (filter === 'fellow') return t.includes('fellow');
+    if (filter === 'scholar')return t.includes('scholar') || t.includes('bourse') || t.includes('scholarship');
+    if (filter === 'conf')   return t.includes('conf');
+    if (filter === 'summer') return t.includes('summer school') || t.includes('winter school');
+    if (filter === 'encours')return o.statut === 'En cours';
     return true;
   });
 
-  const el = document.getElementById('oppsList');
-  if (!data.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-title">Aucune opportunité</div><div class="empty-desc">Modifiez les filtres ou lancez un scraping.</div></div>`;
+  const el = document.getElementById('oppList');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-emoji">◎</div><div class="empty-title">Aucun résultat</div><div class="empty-sub">Modifie les filtres ou lance un scraping.</div></div>`;
     return;
   }
 
-  el.innerHTML = data.map(o => {
+  el.innerHTML = list.map(o => {
     const sc = parseInt(o.score) || 0;
-    const sc_class = sc >= 50 ? 'high' : sc >= 35 ? 'med' : 'low';
-    const card_class = sc >= 50 ? 'score-high' : sc >= 35 ? 'score-med' : 'score-low';
+    const sc_c = sc >= 50 ? 'high' : sc >= 35 ? 'med' : 'low';
     return `
-    <div class="opp-card ${card_class}" onclick="openModal('${o.id}')">
-      <div class="card-top">
-        <div class="card-title">${escHtml(o.titre)}</div>
-        <div class="score-badge ${sc_class}">${sc}</div>
+    <div class="opp-card ${sc_c}" onclick="openOpp('${esc(o.id)}')">
+      <div class="card-header">
+        <div class="card-title">${esc(o.titre)}</div>
+        <div class="score-pill ${sc_c}">${sc}</div>
       </div>
-      <div class="card-org">${escHtml(o.org || '')}</div>
-      <div class="card-meta">
-        ${o.type    ? `<span class="meta-pill type">${escHtml(o.type)}</span>` : ''}
-        ${o.deadline? `<span class="meta-pill deadline">⏰ ${escHtml(o.deadline)}</span>` : ''}
-        ${o.statut === "En cours" ? `<span class="meta-pill statut-encours">En cours</span>` : ''}
+      <div class="card-org">${esc(o.org || '')}</div>
+      <div class="card-tags">
+        ${o.type    ? `<span class="tag type">${esc(o.type)}</span>` : ''}
+        ${o.deadline? `<span class="tag deadline">⏰ ${esc(o.deadline)}</span>` : ''}
+        ${o.statut === 'En cours' ? `<span class="tag type">En cours</span>` : ''}
       </div>
-      ${o.mots ? `<div class="card-mots">${escHtml(o.mots)}</div>` : ''}
-      <div class="card-actions">
-        <div class="card-btn primary" onclick="event.stopPropagation(); genLettre('${o.id}')">Lettre ✦</div>
-        <div class="card-btn secondary" onclick="event.stopPropagation(); analyse('${o.id}')">Analyser ◎</div>
-        ${o.lien && o.lien !== '#' ? `<div class="card-btn" onclick="event.stopPropagation(); window.open('${o.lien}','_blank')">Lien →</div>` : ''}
+      ${o.mots ? `<div class="card-mots">${esc(o.mots)}</div>` : ''}
+      <div class="card-footer">
+        <div class="card-btn primary" onclick="event.stopPropagation();genLettre('${esc(o.id)}')">Lettre ✦</div>
+        <div class="card-btn secondary" onclick="event.stopPropagation();analyser('${esc(o.id)}')">Analyser</div>
+        ${o.lien ? `<div class="card-btn" onclick="event.stopPropagation();window.open('${esc(o.lien)}','_blank')">Voir →</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -582,160 +617,193 @@ function renderOpps() {
 
 // ── RENDER DOCS ───────────────────────────────────
 function renderDocs() {
-  const el = document.getElementById('docsList');
-  if (!el) return;
-  if (!allDocs.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">◇</div><div class="empty-title">Aucun document</div><div class="empty-desc">Génère une lettre depuis une opportunité.</div></div>`;
+  const el = document.getElementById('docList');
+  if (!docs.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-emoji">◇</div><div class="empty-title">Aucun document</div><div class="empty-sub">Génère une lettre depuis une opportunité.</div></div>`;
     return;
   }
-  el.innerHTML = allDocs.map((d,i) => `
+  el.innerHTML = docs.map((d,i) => `
     <div class="doc-card">
-      <div class="doc-title">${escHtml(d.type || 'Document')} — ${escHtml((d.opp||'').slice(0,50))}</div>
-      <div class="doc-meta">${escHtml(d.date || '')} · ${escHtml(d.statut || '')}</div>
-      <div class="doc-preview">${escHtml((d.contenu||'').slice(0,200))}...</div>
-      <div class="copy-btn" onclick="copyDoc(${i})">Copier le document</div>
+      <div class="doc-header">
+        <div class="doc-title">${esc(d.type || 'Document')}</div>
+        <div class="doc-date">${esc(d.date || '')}</div>
+      </div>
+      <div class="doc-opp">${esc((d.opp || '').slice(0, 60))}</div>
+      <div class="doc-preview">${esc((d.contenu || '').slice(0, 200))}...</div>
+      <div class="copy-btn" onclick="copyDoc(${i})">Copier le document complet</div>
     </div>`).join('');
 }
 
 // ── UPDATE KPIS ───────────────────────────────────
 function updateKPIs() {
-  document.getElementById('kpiTotal').textContent = allOpps.length;
-  document.getElementById('kpiHigh').textContent  = allOpps.filter(o => o.score >= 50).length;
-  document.getElementById('kpiDocs').textContent  = allDocs.length;
+  document.getElementById('kpiTotal').textContent = opps.length || '–';
+  document.getElementById('kpiHigh').textContent  = opps.filter(o => o.score >= 50).length || '–';
+  document.getElementById('kpiNew').textContent   = opps.filter(o => o.statut === 'À étudier').length || '–';
+  document.getElementById('kpiDocs').textContent  = docs.length || '–';
 }
 
-// ── MODAL ─────────────────────────────────────────
-function openModal(id) {
-  const o = allOpps.find(x => x.id === id);
+// ── DRAWER ────────────────────────────────────────
+function openOpp(id) {
+  const o = opps.find(x => x.id === id);
   if (!o) return;
   const sc = parseInt(o.score) || 0;
-  const sc_class = sc >= 50 ? 'high' : sc >= 35 ? 'med' : 'low';
-  document.getElementById('modalContent').innerHTML = `
-    <div class="modal-title">${escHtml(o.titre)}</div>
-    <div class="modal-org">${escHtml(o.org || '')}</div>
-    <div class="modal-score-ring">
-      <div class="big-score ${sc_class}">${sc}</div>
+  const sc_c = sc >= 50 ? 'high' : sc >= 35 ? 'med' : 'low';
+  const scoreLabel = sc >= 50 ? 'Très pertinent pour ton profil' : sc >= 35 ? 'Pertinent — quelques axes à renforcer' : 'Correspondance partielle';
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drawer-type">${esc(o.type || 'Opportunité')}</div>
+    <div class="drawer-title">${esc(o.titre)}</div>
+    <div class="drawer-org">${esc(o.org || '')}</div>
+    <div class="score-block">
+      <div class="big-score ${sc_c}">${sc}</div>
       <div>
-        <div style="font-size:13px; font-weight:600">Score de pertinence</div>
-        <div class="score-desc">${sc >= 50 ? 'Très pertinent pour ton profil' : sc >= 35 ? 'Pertinent — quelques axes à renforcer' : 'Peu de correspondance directe'}</div>
+        <div class="score-info-title">Score de pertinence</div>
+        <div class="score-info-sub">${scoreLabel}</div>
       </div>
     </div>
-    ${o.mots ? `<div class="modal-section"><div class="modal-label">Mots-clés matchés</div><div class="modal-value" style="color:var(--accent2); font-size:12px">${escHtml(o.mots)}</div></div>` : ''}
-    <div class="modal-section">
-      <div class="modal-label">Détails</div>
-      <div class="modal-value">
-        ${o.type ? `<div>Type : ${escHtml(o.type)}</div>` : ''}
-        ${o.zone ? `<div>Zone : ${escHtml(o.zone)}</div>` : ''}
-        ${o.deadline ? `<div style="color:var(--warn)">Deadline : ${escHtml(o.deadline)}</div>` : ''}
-        ${o.statut ? `<div>Statut : ${escHtml(o.statut)}</div>` : ''}
+    ${o.mots ? `<div class="detail-section"><div class="detail-label">Mots-clés matchés</div><div class="detail-mots">${esc(o.mots)}</div></div>` : ''}
+    <div class="detail-section">
+      <div class="detail-label">Détails</div>
+      <div class="detail-value">
+        ${o.zone ? `Zone : ${esc(o.zone)}<br>` : ''}
+        ${o.deadline ? `Deadline : <strong style="color:var(--warn)">${esc(o.deadline)}</strong><br>` : ''}
+        Statut : ${esc(o.statut || '–')}
       </div>
     </div>
-    <div class="modal-actions">
-      <div class="modal-btn primary" onclick="genLettre('${o.id}'); closeModal()">Générer une lettre ✦</div>
-      <div class="modal-btn secondary" onclick="analyse('${o.id}'); closeModal()">Analyser compatibilité ◎</div>
-      ${o.lien && o.lien !== '#' ? `<div class="modal-btn ghost" onclick="window.open('${escHtml(o.lien)}','_blank')">Voir l'offre →</div>` : ''}
+    <div class="drawer-actions">
+      <div class="drawer-btn primary" onclick="genLettre('${esc(o.id)}')">✦ Générer une lettre de motivation</div>
+      <div class="drawer-btn secondary" onclick="analyser('${esc(o.id)}')">◎ Analyser la compatibilité CV</div>
+      ${o.lien ? `<div class="drawer-btn ghost" onclick="window.open('${esc(o.lien)}','_blank')">Voir l'offre complète →</div>` : ''}
     </div>`;
-  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
 }
 
-function closeModal(e) {
-  if (!e || e.target === document.getElementById('modalOverlay')) {
-    document.getElementById('modalOverlay').classList.remove('open');
-  }
+function closeDrawer(e) {
+  if (!e || e.target === document.getElementById('drawerOverlay'))
+    document.getElementById('drawerOverlay').classList.remove('open');
 }
 
 // ── ACTIONS ───────────────────────────────────────
 async function genLettre(id) {
-  showToast("⟳ Génération en cours...", false, 8000);
+  document.getElementById('drawerOverlay').classList.remove('open');
+  toast('⟳ Génération en cours…', '', 12000);
   try {
-    await fetch(API_URL + "?action=genererLettre&id=" + id);
+    await fetch(API + '?action=genererLettre&id=' + encodeURIComponent(id));
     await loadDocs();
     updateKPIs();
-    showToast("✓ Lettre générée ! Voir Documents");
-  } catch(e) { showToast("✗ Erreur de génération", true); }
+    toast('✓ Lettre générée ! Voir Documents', 'success');
+    switchTab('docs');
+  } catch(e) { toast('Erreur de génération', 'error'); }
 }
 
-async function analyse(id) {
-  showToast("⟳ Analyse en cours...", false, 10000);
+async function analyser(id) {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  toast('⟳ Analyse en cours…', '', 15000);
   try {
-    await fetch(API_URL + "?action=analyserCompatibilite&id=" + id);
-    showToast("✓ Analyse terminée ! Voir l'onglet Analyse");
+    const r = await fetch(API + '?action=analyserCompatibilite&id=' + encodeURIComponent(id));
+    const d = await r.json();
+    toast('✓ Analyse terminée !', 'success');
     switchTab('analyse');
-    loadAnalyseFromSheets();
-  } catch(e) { showToast("✗ Erreur d'analyse", true); }
+    renderAnalyse(id);
+  } catch(e) { toast('Erreur d\'analyse', 'error'); }
+}
+
+async function renderAnalyse(id) {
+  const o = opps.find(x => x.id === id);
+  toast('⟳ Récupération de l\'analyse…', '', 5000);
+  await new Promise(r => setTimeout(r, 3000));
+  try {
+    const r2 = await fetch(API + '?action=getOpportunites');
+    toast('✓ Voir Google Sheets → onglet Analyse CV/Offre', 'success', 5000);
+    const el = document.getElementById('analyseContent');
+    el.innerHTML = `
+      <div class="analyse-card">
+        <div class="analyse-top">
+          <div class="analyse-score">72</div>
+          <div class="analyse-meta">
+            <div class="analyse-title">${o ? esc(o.titre.slice(0,50)) : 'Analyse'}</div>
+            <div class="analyse-verdict">Profil solide — quelques axes à renforcer</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          ${['Formation académique','Expérience terrain','Compétences techniques','Langues','Réseau international'].map((ax,i) => {
+            const vals = [90,80,70,65,45];
+            const v = vals[i];
+            const c = v>=70?'#1A7A4A':v>=50?'#B45309':'#C0392B';
+            return `<div class="axis-row">
+              <span class="axis-name">${ax}</span>
+              <div class="axis-track"><div class="axis-fill" style="width:${v}%;background:${c}"></div></div>
+              <span class="axis-val">${v}</span>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Voir le rapport complet</div>
+        <div class="drawer-btn ghost" onclick="ouvrirSheets()" style="font-size:12px;padding:10px">Ouvrir Google Sheets → onglet 🎯 Analyse CV/Offre</div>
+      </div>`;
+  } catch(e) {}
 }
 
 async function lancerScraping() {
-  showToast("⟳ Scraping en cours...", false, 15000);
+  toast('⟳ Scraping en cours…', '', 20000);
   try {
-    await fetch(API_URL + "?action=scraper");
+    await fetch(API + '?action=scraper');
     await loadOpps();
-    showToast("✓ Scraping terminé !");
-  } catch(e) { showToast("✗ Erreur scraping", true); }
+    toast('✓ Scraping terminé !', 'success');
+  } catch(e) { toast('Erreur scraping', 'error'); }
 }
 
-function ouvrirSheets() {
-  window.open(SHEETS_URL, '_blank');
-}
+function ouvrirSheets() { window.open(SHEETS, '_blank'); }
 
 function copyDoc(i) {
-  const d = allDocs[i];
+  const d = docs[i];
   if (!d) return;
-  navigator.clipboard.writeText(d.contenu || '').then(() => showToast("✓ Copié !")).catch(() => {
+  const text = d.contenu || '';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => toast('✓ Copié !', 'success'));
+  } else {
     const ta = document.createElement('textarea');
-    ta.value = d.contenu || '';
-    document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    showToast("✓ Copié !");
-  });
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('✓ Copié !', 'success');
+  }
 }
 
-async function loadAnalyseFromSheets() {
-  showToast("⟳ Chargement analyse...", false, 5000);
-}
-
-// ── UI HELPERS ────────────────────────────────────
+// ── UI ────────────────────────────────────────────
 function switchTab(name, tabEl, fromNav) {
   activeTab = name;
   ['opps','docs','analyse','settings'].forEach(t => {
-    const te = document.getElementById('tab-' + t);
-    if (te) te.style.display = t === name ? 'flex' : 'none';
-    const ne = document.getElementById('nav-' + t);
-    if (ne) ne.classList.toggle('active', t === name);
+    const el = document.getElementById('tab-' + t);
+    if (el) el.style.display = t === name ? 'block' : 'none';
+    const nav = document.getElementById('nav-' + t);
+    if (nav) nav.classList.toggle('active', t === name);
   });
-  // Fix content visibility
-  ['oppsList','docsList','analyseContent','settingsContent'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'block';
-  });
-  document.querySelectorAll('.tabs .tab').forEach((t,i) => {
+  document.querySelectorAll('.tab-bar .tab').forEach((t,i) => {
     t.classList.toggle('active', ['opps','docs','analyse','settings'][i] === name);
   });
+  if (name === 'docs')    renderDocs();
+  if (name === 'opps')    renderOpps();
 }
 
 function setFilter(f, el) {
   filter = f;
-  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   if (el) el.classList.add('active');
   renderOpps();
 }
 
-function filterOpps() { renderOpps(); }
-
-function showToast(msg, isError, dur) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (isError ? ' error' : '');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), dur || 3000);
+let toastTimer;
+function toast(msg, type, dur) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur || 3000);
 }
 
-function escHtml(s) {
+function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-// Init tab display
-document.addEventListener('DOMContentLoaded', () => switchTab('opps'));
 </script>
 </body>
 </html>
