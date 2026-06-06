@@ -287,13 +287,15 @@ async function loadOpps() {
   const el = document.getElementById('oppList');
   el.innerHTML = '<div class="loader"><div class="ring"></div><div class="lt">Chargement...</div></div>';
   try {
-    const r = await fetch(API + '?action=getOpportunites');
+    // Lecture depuis GitHub — pas d'authentification requise
+    const r = await fetch('https://raw.githubusercontent.com/karlfox933-oss/Career-Builder/main/data.json?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     opps = Array.isArray(d) ? d : [];
     renderOpps();
     updateK();
   } catch(e) {
-    el.innerHTML = '<div class="empty"><div class="ei">⚠</div><div class="et">Erreur de connexion</div><div class="es">' + e.message + '<br><br>Appuie sur ↻ pour réessayer.</div></div>';
+    el.innerHTML = '<div class="empty"><div class="ei">⚠</div><div class="et">Erreur de chargement</div><div class="es">' + e.message + '<br><br>Appuie sur ↻ pour réessayer.</div></div>';
   }
 }
 
